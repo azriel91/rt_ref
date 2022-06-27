@@ -1,0 +1,12 @@
+[package]
+name = "rt_ref"
+version = "0.1.0"
+authors = ["Azriel Hoh <azriel91@gmail.com>"]
+edition = "2021"
+description = "Internal `Ref` types for `rt_ref` and `rt_vec`."
+repository = "https://github.com/azriel91/rt_ref"
+documentation = "https://docs.rs/rt_ref/"
+readme = "README.md"
+categories = ["data-structures"]
+keywords = ["automation"]
+license = "MIT OR Apache-2.0"
