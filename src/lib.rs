@@ -8,7 +8,7 @@
 //! Add the following to `Cargo.toml`:
 //!
 //! ```toml
-//! rt_ref = "0.1.0"
+//! rt_ref = "0.1.1"
 //! ```
 //!
 //! In code:
