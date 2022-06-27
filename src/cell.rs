@@ -124,7 +124,7 @@ impl<T> Cell<T> {
 
             if self
                 .flag
-                .compare_exchange(val, val + 1, Ordering::AcqRel, Ordering::Acquire)
+                .compare_exchange_weak(val, val + 1, Ordering::AcqRel, Ordering::Acquire)
                 == Ok(val)
             {
                 return true;
