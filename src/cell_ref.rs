@@ -24,8 +24,15 @@ where
 {
     /// Returns a clone of this `CellRef`.
     ///
-    /// This should be used instead of `.clone()` to handle potential overflow
-    /// of references.
+    /// This method allows handling of reference overflows, but:
+    ///
+    /// * Having 4 billion / 9 quintillion references to an object is not a
+    ///   realistic scenario in most applications.
+    /// * Applications that hold `CellRef`s with an ever-increasing reference
+    ///   count is not supported by this library.
+    ///
+    ///     Reaching `usize::MAX` may be possible with
+    ///     `std::mem::forget(CellRef::clone(&r))`.
     pub fn try_clone(&self) -> Result<Self, RefOverflow> {
         let previous_value = self.flag.fetch_add(1, Ordering::Release);
         if previous_value == usize::MAX {
@@ -122,6 +129,19 @@ impl<'a, T> Clone for CellRef<'a, T>
 where
     T: ?Sized,
 {
+    /// Returns a clone of this `CellRef`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the number of references is `usize::MAX`:
+    ///
+    /// * Having 4 billion / 9 quintillion references to an object is not a
+    ///   realistic scenario in most applications.
+    /// * Applications that hold `CellRef`s with an ever-increasing reference
+    ///   count is not supported by this library.
+    ///
+    ///     Reaching `usize::MAX` may be possible with
+    ///     `std::mem::forget(CellRef::clone(&r))`.
     fn clone(&self) -> Self {
         self.try_clone()
             .unwrap_or_else(|e| panic!("Failed to clone `CellRef`: {e}"))

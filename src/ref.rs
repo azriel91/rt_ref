@@ -18,8 +18,15 @@ impl<'a, V> Ref<'a, V> {
 
     /// Returns a clone of this `Ref`.
     ///
-    /// This should be used instead of `.clone()` to handle potential overflow
-    /// of references.
+    /// This method allows handling of reference overflows, but:
+    ///
+    /// * Having 4 billion / 9 quintillion references to an object is not a
+    ///   realistic scenario in most applications.
+    /// * Applications that hold `Ref`s with an ever-increasing reference count
+    ///   is not supported by this library.
+    ///
+    ///     Reaching `usize::MAX` may be possible with
+    ///     `std::mem::forget(Ref::clone(&r))`.
     pub fn try_clone(&self) -> Result<Self, RefOverflow> {
         self.inner.try_clone().map(Self::new)
     }
@@ -55,6 +62,19 @@ where
 }
 
 impl<'a, V> Clone for Ref<'a, V> {
+    /// Returns a clone of this `Ref`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the number of references is `usize::MAX`:
+    ///
+    /// * Having 4 billion / 9 quintillion references to an object is not a
+    ///   realistic scenario in most applications.
+    /// * Applications that hold `Ref`s with an ever-increasing reference count
+    ///   is not supported by this library.
+    ///
+    ///     Reaching `usize::MAX` may be possible with
+    ///     `std::mem::forget(Ref::clone(&r))`.
     fn clone(&self) -> Self {
         Ref {
             inner: self.inner.clone(),
