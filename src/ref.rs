@@ -1,6 +1,6 @@
 use std::{cmp::PartialEq, fmt, ops::Deref};
 
-use crate::CellRef;
+use crate::{CellRef, RefOverflow};
 
 /// Reference to a value.
 pub struct Ref<'a, V>
@@ -11,8 +11,17 @@ where
 }
 
 impl<'a, V> Ref<'a, V> {
+    /// Returns a new `Ref`.
     pub fn new(inner: CellRef<'a, V>) -> Self {
         Self { inner }
+    }
+
+    /// Returns a clone of this `Ref`.
+    ///
+    /// This should be used instead of `.clone()` to handle potential overflow
+    /// of references.
+    pub fn try_clone(&self) -> Result<Self, RefOverflow> {
+        self.inner.try_clone().map(Self::new)
     }
 }
 
@@ -60,7 +69,7 @@ mod tests {
         sync::atomic::{AtomicUsize, Ordering},
     };
 
-    use crate::CellRef;
+    use crate::{CellRef, RefOverflow};
 
     use super::Ref;
 
@@ -108,13 +117,39 @@ mod tests {
     }
 
     #[test]
-    fn clone_increments_cell_ref_count() -> fmt::Result {
-        let flag = AtomicUsize::new(1);
-        let value = A(1);
-        let ref_0 = Ref::new(CellRef {
-            flag: &flag,
-            value: &value,
-        });
+    fn try_clone_returns_ok_when_ref_count_less_than_usize_max() {
+        let flag = &AtomicUsize::new(1);
+        let value = &A(1);
+        let ref_0 = Ref::new(CellRef { flag, value });
+
+        assert_eq!(1, ref_0.inner.flag.load(Ordering::SeqCst));
+
+        let try_clone_result = ref_0.try_clone();
+
+        let ref_1 = try_clone_result.expect("try_clone_result to be ok");
+        assert_eq!(2, ref_0.inner.flag.load(Ordering::SeqCst));
+        assert_eq!(2, ref_1.inner.flag.load(Ordering::SeqCst));
+    }
+
+    #[test]
+    fn try_clone_returns_err_when_ref_count_equals_usize_max() {
+        let flag = &AtomicUsize::new(usize::MAX);
+        let value = &A(1);
+        let ref_0 = Ref::new(CellRef { flag, value });
+
+        assert_eq!(usize::MAX, ref_0.inner.flag.load(Ordering::SeqCst));
+
+        let try_clone_result = ref_0.try_clone();
+
+        let e = try_clone_result.expect_err("try_clone_result to be err");
+        assert_eq!(RefOverflow, e);
+    }
+
+    #[test]
+    fn clone_increments_cell_ref_count() {
+        let flag = &AtomicUsize::new(1);
+        let value = &A(1);
+        let ref_0 = Ref::new(CellRef { flag, value });
 
         assert_eq!(1, ref_0.inner.flag.load(Ordering::SeqCst));
 
@@ -122,8 +157,18 @@ mod tests {
 
         assert_eq!(2, ref_0.inner.flag.load(Ordering::SeqCst));
         assert_eq!(2, ref_1.inner.flag.load(Ordering::SeqCst));
+    }
 
-        Ok(())
+    #[test]
+    #[should_panic(expected = "Failed to clone `CellRef`: Ref count exceeded `usize::MAX`")]
+    fn clone_panics_when_ref_count_equals_usize_max() {
+        let flag = &AtomicUsize::new(usize::MAX);
+        let value = &A(1);
+        let ref_0 = Ref::new(CellRef { flag, value });
+
+        assert_eq!(usize::MAX, ref_0.inner.flag.load(Ordering::SeqCst));
+
+        let _cloned = ref_0.clone();
     }
 
     #[derive(Debug, Clone, PartialEq)]

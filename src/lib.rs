@@ -37,7 +37,7 @@
 
 pub use crate::{
     borrow_fail::BorrowFail, cell::Cell, cell_ref::CellRef, cell_ref_mut::CellRefMut, r#ref::Ref,
-    ref_mut::RefMut,
+    ref_mut::RefMut, ref_overflow::RefOverflow,
 };
 
 mod borrow_fail;
@@ -46,3 +46,4 @@ mod cell_ref;
 mod cell_ref_mut;
 mod r#ref;
 mod ref_mut;
+mod ref_overflow;
