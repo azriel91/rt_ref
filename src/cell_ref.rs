@@ -130,7 +130,10 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::{
+        error::Error,
+        sync::atomic::{AtomicUsize, Ordering},
+    };
 
     use crate::RefOverflow;
 
@@ -162,6 +165,7 @@ mod tests {
 
         let e = try_clone_result.expect_err("try_clone_result to be err");
         assert_eq!(RefOverflow, e);
+        assert!(e.source().is_none());
     }
 
     #[test]

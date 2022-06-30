@@ -184,6 +184,35 @@ mod tests {
     }
 
     #[test]
+    fn get_mut_allows_write() {
+        let mut cell = Cell::new(5);
+
+        {
+            let a = cell.get_mut();
+            *a += 2;
+            *a += 3;
+        }
+
+        assert_eq!(10, *cell.borrow());
+    }
+
+    #[test]
+    fn into_inner_returns_value() {
+        #[derive(Debug, PartialEq)]
+        struct A(usize);
+
+        let mut cell = Cell::new(A(5));
+
+        {
+            let a = cell.get_mut();
+            a.0 += 2;
+            a.0 += 3;
+        }
+
+        assert_eq!(A(10), cell.into_inner());
+    }
+
+    #[test]
     #[should_panic(
         expected = "Expected to borrow `i32` immutably, but it was already borrowed mutably."
     )]
