@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.2 (unreleased)
+## 0.1.2 (2022-07-01)
 
 * Fix `CellRef` unsoundness by panicking when number of references is `usize::MAX`. ([#1], [#2])
 * Add `Ref::try_clone` for recoverable clonability. ([#1], [#2])

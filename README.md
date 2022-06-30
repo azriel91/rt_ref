@@ -15,7 +15,7 @@ These types are shared by [`rt_map`] and [`rt_vec`].
 Add the following to `Cargo.toml`:
 
 ```toml
-rt_ref = "0.1.1"
+rt_ref = "0.1.2"
 ```
 
 In code:
