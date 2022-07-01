@@ -163,6 +163,9 @@ mod tests {
 
         let e = try_clone_result.expect_err("try_clone_result to be err");
         assert_eq!(RefOverflow, e);
+
+        // Ensure that the overflow is not persisted
+        assert_eq!(usize::MAX, ref_0.inner.flag.load(Ordering::SeqCst));
     }
 
     #[test]
