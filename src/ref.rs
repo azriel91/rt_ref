@@ -36,7 +36,7 @@ impl<'a, V> Deref for Ref<'a, V> {
     type Target = V;
 
     fn deref(&self) -> &V {
-        &*self.inner
+        &self.inner
     }
 }
 
