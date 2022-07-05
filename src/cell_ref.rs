@@ -6,10 +6,6 @@ use std::{
 
 use crate::RefOverflow;
 
-/// Maximum number of references that can be held so that it is safe to add
-/// another.
-const REF_LIMIT_MAX: usize = usize::MAX - 1;
-
 /// An immutable reference to data in a `Cell`.
 ///
 /// Access the value via `std::ops::Deref` (e.g. `*val`)
@@ -38,19 +34,22 @@ where
     ///     Reaching `usize::MAX` may be possible with
     ///     `std::mem::forget(CellRef::clone(&r))`.
     pub fn try_clone(&self) -> Result<Self, RefOverflow> {
-        self.flag
-            .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |current_value| {
-                if current_value <= REF_LIMIT_MAX {
-                    Some(current_value + 1)
-                } else {
-                    None
-                }
-            })
-            .map(|_| CellRef {
+        let previous_value = self.flag.fetch_add(1, Ordering::Relaxed);
+
+        #[cfg(not(feature = "nightly"))]
+        let overflow = previous_value == usize::MAX;
+        #[cfg(feature = "nightly")]
+        let overflow = std::intrinsics::unlikely(previous_value == usize::MAX);
+
+        if overflow {
+            self.flag.fetch_sub(1, Ordering::SeqCst);
+            Err(RefOverflow)
+        } else {
+            Ok(CellRef {
                 flag: self.flag,
                 value: self.value,
             })
-            .map_err(|_| RefOverflow)
+        }
     }
 
     /// Makes a new `CellRef` for a component of the borrowed data which

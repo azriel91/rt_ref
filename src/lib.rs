@@ -1,3 +1,5 @@
+#![cfg_attr(feature = "nightly", feature(core_intrinsics))]
+
 //! `Ref` types with internal mutability that implement `Send` and `Sync`.
 //!
 //! These types are shared by [`rt_map`] and [`rt_vec`].
