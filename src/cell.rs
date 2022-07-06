@@ -17,7 +17,7 @@ macro_rules! borrow_panic {
 }
 
 /// A custom cell container that is a `RefCell` with thread-safety.
-#[derive(Debug)]
+#[cfg_attr(not(feature = "unsafe_debug"), derive(Debug))]
 pub struct Cell<T> {
     flag: AtomicUsize,
     inner: UnsafeCell<T>,
@@ -138,6 +138,22 @@ impl<T> Cell<T> {
         self.flag
             .compare_exchange(0, usize::MAX, Ordering::AcqRel, Ordering::Acquire)
             == Ok(0)
+    }
+}
+
+#[cfg(feature = "unsafe_debug")]
+use std::fmt;
+
+#[cfg(feature = "unsafe_debug")]
+impl<T> fmt::Debug for Cell<T>
+where
+    T: fmt::Debug,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Cell")
+            .field("flag", &self.flag)
+            .field("inner", unsafe { &*self.inner.get() })
+            .finish()
     }
 }
 
@@ -447,5 +463,62 @@ mod tests {
         assert_eq!(cell.flag.load(Ordering::SeqCst), std::usize::MAX);
         drop(r);
         assert_eq!(cell.flag.load(Ordering::SeqCst), 0);
+    }
+
+    #[cfg(not(feature = "unsafe_debug"))]
+    #[test]
+    fn debug() {
+        assert_eq!(
+            "Cell { flag: 0, inner: UnsafeCell { .. } }",
+            format!("{:?}", Cell::new(1))
+        );
+        assert_eq!(
+            "Cell { flag: 0, inner: UnsafeCell { .. } }",
+            format!("{:?}", Cell::new("a"))
+        );
+
+        #[derive(Debug)]
+        struct A(u32);
+        assert_eq!(
+            "Cell { flag: 0, inner: UnsafeCell { .. } }",
+            format!("{:?}", Cell::new(A(1)))
+        );
+
+        #[allow(dead_code)]
+        #[derive(Debug)]
+        struct B {
+            value: u32,
+        }
+        assert_eq!(
+            "Cell { flag: 0, inner: UnsafeCell { .. } }",
+            format!("{:?}", Cell::new(B { value: 1 }))
+        );
+    }
+
+    #[cfg(feature = "unsafe_debug")]
+    #[test]
+    fn unsafe_debug() {
+        assert_eq!("Cell { flag: 0, inner: 1 }", format!("{:?}", Cell::new(1)));
+        assert_eq!(
+            "Cell { flag: 0, inner: \"a\" }",
+            format!("{:?}", Cell::new("a"))
+        );
+
+        #[derive(Debug)]
+        struct A(u32);
+        assert_eq!(
+            "Cell { flag: 0, inner: A(1) }",
+            format!("{:?}", Cell::new(A(1)))
+        );
+
+        #[allow(dead_code)]
+        #[derive(Debug)]
+        struct B {
+            value: u32,
+        }
+        assert_eq!(
+            "Cell { flag: 0, inner: B { value: 1 } }",
+            format!("{:?}", Cell::new(B { value: 1 }))
+        );
     }
 }
