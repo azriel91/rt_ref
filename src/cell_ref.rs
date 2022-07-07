@@ -18,6 +18,9 @@ where
     pub value: &'a T,
 }
 
+/// Cast max `isize` as `usize`, so we don't have to do it in multiple places.
+pub(crate) const REF_LIMIT_MAX: usize = isize::MAX as usize;
+
 impl<'a, T> CellRef<'a, T>
 where
     T: ?Sized,
@@ -26,23 +29,21 @@ where
     ///
     /// This method allows handling of reference overflows, but:
     ///
-    /// * Having 4 billion / 9 quintillion references to an object is not a
-    ///   realistic scenario in most applications.
-    /// * Applications that hold `CellRef`s with an ever-increasing reference
-    ///   count is not supported by this library.
+    /// * Having 2 billion (32-bit system) / 9 quintillion (64-bit system)
+    ///   references to an object is not a realistic scenario in most
+    ///   applications.
     ///
-    ///     Reaching `usize::MAX` may be possible with
+    /// * Applications that hold `CellRef`s with an ever-increasing reference
+    ///   count are not supported by this library.
+    ///
+    ///     Reaching `isize::MAX` may be possible with
     ///     `std::mem::forget(CellRef::clone(&r))`.
     pub fn try_clone(&self) -> Result<Self, RefOverflow> {
         let previous_value = self.flag.fetch_add(1, Ordering::Relaxed);
 
-        #[cfg(not(feature = "nightly"))]
-        let overflow = previous_value == usize::MAX;
-        #[cfg(feature = "nightly")]
-        let overflow = std::intrinsics::unlikely(previous_value == usize::MAX);
-
-        if overflow {
-            self.flag.fetch_sub(1, Ordering::SeqCst);
+        let overflow = previous_value >= REF_LIMIT_MAX;
+        if unlikely(overflow) {
+            self.flag.fetch_sub(1, Ordering::Relaxed);
             Err(RefOverflow)
         } else {
             Ok(CellRef {
@@ -140,19 +141,32 @@ where
     ///
     /// # Panics
     ///
-    /// Panics if the number of references is `usize::MAX`:
+    /// Panics if the number of references is `isize::MAX`:
     ///
-    /// * Having 4 billion / 9 quintillion references to an object is not a
+    /// * Having 2 billion / 9 quintillion references to an object is not a
     ///   realistic scenario in most applications.
     /// * Applications that hold `CellRef`s with an ever-increasing reference
-    ///   count is not supported by this library.
+    ///   count are not supported by this library.
     ///
-    ///     Reaching `usize::MAX` may be possible with
+    ///     Reaching `isize::MAX` may be possible with
     ///     `std::mem::forget(CellRef::clone(&r))`.
     fn clone(&self) -> Self {
         self.try_clone()
             .unwrap_or_else(|e| panic!("Failed to clone `CellRef`: {e}"))
     }
+}
+
+/// Trick to mimic `std::intrinsics::unlikely` on stable Rust.
+#[cold]
+#[inline(always)]
+fn cold() {}
+
+#[inline(always)]
+fn unlikely(cond: bool) -> bool {
+    if cond {
+        cold();
+    }
+    cond
 }
 
 #[cfg(test)]
@@ -164,10 +178,10 @@ mod tests {
 
     use crate::RefOverflow;
 
-    use super::CellRef;
+    use super::{CellRef, REF_LIMIT_MAX};
 
     #[test]
-    fn try_clone_returns_ok_when_ref_count_less_than_usize_max() {
+    fn try_clone_returns_ok_when_ref_count_less_than_isize_max() {
         let flag = &AtomicUsize::new(1);
         let value = &1u32;
         let cell_ref = CellRef { flag, value };
@@ -181,12 +195,12 @@ mod tests {
     }
 
     #[test]
-    fn try_clone_returns_err_when_ref_count_equals_usize_max() {
-        let flag = &AtomicUsize::new(usize::MAX);
+    fn try_clone_returns_err_when_ref_count_equals_isize_max() {
+        let flag = &AtomicUsize::new(REF_LIMIT_MAX);
         let value = &1u32;
         let cell_ref = CellRef { flag, value };
 
-        assert_eq!(usize::MAX, cell_ref.flag.load(Ordering::SeqCst));
+        assert_eq!(REF_LIMIT_MAX, cell_ref.flag.load(Ordering::SeqCst));
 
         let try_clone_result = cell_ref.try_clone();
 
@@ -195,11 +209,11 @@ mod tests {
         assert!(e.source().is_none());
 
         // Ensure that the overflow is not persisted
-        assert_eq!(usize::MAX, cell_ref.flag.load(Ordering::SeqCst));
+        assert_eq!(REF_LIMIT_MAX, cell_ref.flag.load(Ordering::SeqCst));
     }
 
     #[test]
-    fn clone_returns_cell_ref_when_ref_count_less_than_usize_max() {
+    fn clone_returns_cell_ref_when_ref_count_less_than_isize_max() {
         let flag = &AtomicUsize::new(1);
         let value = &1u32;
         let cell_ref = CellRef { flag, value };
@@ -213,13 +227,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "Failed to clone `CellRef`: Ref count exceeded `usize::MAX`")]
-    fn clone_panics_when_ref_count_equals_usize_max() {
-        let flag = &AtomicUsize::new(usize::MAX);
+    #[should_panic(expected = "Failed to clone `CellRef`: Ref count exceeded `isize::MAX`")]
+    fn clone_panics_when_ref_count_equals_isize_max() {
+        let flag = &AtomicUsize::new(REF_LIMIT_MAX);
         let value = &1u32;
         let cell_ref = CellRef { flag, value };
 
-        assert_eq!(usize::MAX, cell_ref.flag.load(Ordering::SeqCst));
+        assert_eq!(REF_LIMIT_MAX, cell_ref.flag.load(Ordering::SeqCst));
 
         let _clone = cell_ref.clone();
     }

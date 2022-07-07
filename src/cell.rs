@@ -3,7 +3,7 @@ use std::{
     sync::atomic::{AtomicUsize, Ordering},
 };
 
-use crate::{BorrowFail, CellRef, CellRefMut};
+use crate::{cell_ref::REF_LIMIT_MAX, BorrowFail, CellRef, CellRefMut};
 
 macro_rules! borrow_panic {
     ($borrow_wanted:expr, $borrow_existing:expr) => {{
@@ -118,7 +118,7 @@ impl<T> Cell<T> {
         loop {
             let val = self.flag.load(Ordering::Acquire);
 
-            if val == usize::MAX {
+            if val >= REF_LIMIT_MAX {
                 return false;
             }
 
