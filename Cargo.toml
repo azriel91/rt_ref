@@ -10,3 +10,6 @@ readme = "README.md"
 categories = ["data-structures"]
 keywords = ["automation"]
 license = "MIT OR Apache-2.0"
+
+[features]
+unsafe_debug = []

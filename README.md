@@ -15,7 +15,8 @@ These types are shared by [`rt_map`] and [`rt_vec`].
 Add the following to `Cargo.toml`:
 
 ```toml
-rt_ref = "0.1.2"
+rt_ref = "0.1.2" # or
+rt_ref = { version = "0.1.2", features = ["unsafe_debug"] }
 ```
 
 In code:
@@ -37,6 +38,28 @@ a.map(|mut a| {
 
 let a = v.get(0).map(|cell| Ref::new(cell.borrow()));
 assert_eq!(Some(3), a.map(|a| *a));
+```
+
+
+### Features
+
+#### `"unsafe_debug"`:
+
+The borrowed reference will use the inner type's `Debug` implementation when formatted.
+
+```rust
+use rt_ref::{Cell, Ref, RefMut};
+
+let mut v = Vec::new();
+v.push(Cell::new("a"));
+
+#[cfg(not(feature = "unsafe_debug"))]
+assert_eq!(
+    r#"[Cell { flag: 0, inner: UnsafeCell { .. } }]"#,
+    format!("{v:?}")
+);
+#[cfg(feature = "unsafe_debug")]
+assert_eq!(r#"[Cell { flag: 0, inner: "a" }]"#, format!("{v:?}"));
 ```
 
 
