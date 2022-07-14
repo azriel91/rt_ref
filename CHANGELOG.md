@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.3 (unreleased)
+## 0.1.3 (2022-07-14)
 
 * Limit number of `CellRef` references to `isize::MAX`, as it wouldn't realistically fit into memory. ([#1], [#3])
 * Add `"unsafe_debug"` feature to use borrowed type's `Debug` implementation. ([#4])

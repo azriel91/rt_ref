@@ -15,8 +15,8 @@ These types are shared by [`rt_map`] and [`rt_vec`].
 Add the following to `Cargo.toml`:
 
 ```toml
-rt_ref = "0.1.2" # or
-rt_ref = { version = "0.1.2", features = ["unsafe_debug"] }
+rt_ref = "0.1.3" # or
+rt_ref = { version = "0.1.3", features = ["unsafe_debug"] }
 ```
 
 In code:
