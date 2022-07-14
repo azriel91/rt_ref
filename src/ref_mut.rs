@@ -45,7 +45,7 @@ impl<'a, V> Deref for RefMut<'a, V> {
     type Target = V;
 
     fn deref(&self) -> &V {
-        &*self.inner
+        &self.inner
     }
 }
 

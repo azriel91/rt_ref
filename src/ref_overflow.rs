@@ -1,6 +1,6 @@
 use std::fmt;
 
-/// Error when trying to clone a [`Ref`], but there are already [`usize::MAX`]
+/// Error when trying to clone a [`Ref`], but there are already [`isize::MAX`]
 /// references.
 ///
 /// [`Ref`]: crate::Ref
@@ -9,7 +9,7 @@ pub struct RefOverflow;
 
 impl fmt::Display for RefOverflow {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Ref count exceeded `usize::MAX` ({}).", usize::MAX)
+        write!(f, "Ref count exceeded `isize::MAX` ({}).", isize::MAX)
     }
 }
 
