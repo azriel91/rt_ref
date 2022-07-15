@@ -14,8 +14,8 @@ pub struct CellRef<'a, T>
 where
     T: ?Sized + 'a,
 {
-    pub flag: &'a AtomicUsize,
-    pub value: &'a T,
+    pub(crate) flag: &'a AtomicUsize,
+    pub(crate) value: &'a T,
 }
 
 /// Cast max `isize` as `usize`, so we don't have to do it in multiple places.
