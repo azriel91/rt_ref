@@ -12,8 +12,8 @@ pub struct CellRefMut<'a, T>
 where
     T: ?Sized + 'a,
 {
-    pub flag: &'a AtomicUsize,
-    pub value: &'a mut T,
+    pub(crate) flag: &'a AtomicUsize,
+    pub(crate) value: &'a mut T,
 }
 
 impl<'a, T> CellRefMut<'a, T>
