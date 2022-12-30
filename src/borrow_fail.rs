@@ -7,7 +7,7 @@ pub enum BorrowFail {
     BorrowConflictImm,
     /// Requested a mutable borrow, but value was already borrowed.
     ///
-    /// This variant is returne whether the value was previously borrowed
+    /// This variant is return whether the value was previously borrowed
     /// immutably or mutably.
     BorrowConflictMut,
 }
