@@ -8,8 +8,8 @@
 //! Add the following to `Cargo.toml`:
 //!
 //! ```toml
-//! rt_ref = "0.2.0" # or
-//! rt_ref = { version = "0.2.0", features = ["unsafe_debug"] }
+//! rt_ref = "0.2.1" # or
+//! rt_ref = { version = "0.2.1", features = ["unsafe_debug"] }
 //! ```
 //!
 //! In code:
