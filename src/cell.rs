@@ -477,6 +477,7 @@ mod tests {
             format!("{:?}", Cell::new("a"))
         );
 
+        #[allow(dead_code)]
         #[derive(Debug)]
         struct A(u32);
         assert_eq!(
@@ -504,6 +505,7 @@ mod tests {
             format!("{:?}", Cell::new("a"))
         );
 
+        #[allow(dead_code)]
         #[derive(Debug)]
         struct A(u32);
         assert_eq!(

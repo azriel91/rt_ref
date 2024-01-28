@@ -4,7 +4,7 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
-pub use crate::{cell::Cell, cell_ref::CellRef, cell_ref_mut::CellRefMut};
+pub use crate::cell_ref_mut::CellRefMut;
 
 /// Mutable reference to a value.
 pub struct RefMut<'a, V>
