@@ -437,9 +437,9 @@ mod tests {
         let cell = Cell::new(Box::new(10));
 
         let r: CellRefMut<'_, Box<usize>> = cell.borrow_mut();
-        assert_eq!(cell.flag.load(Ordering::SeqCst), std::usize::MAX);
+        assert_eq!(cell.flag.load(Ordering::SeqCst), usize::MAX);
         let _nr: CellRefMut<'_, usize> = r.map(Box::as_mut);
-        assert_eq!(cell.flag.load(Ordering::SeqCst), std::usize::MAX);
+        assert_eq!(cell.flag.load(Ordering::SeqCst), usize::MAX);
     }
 
     #[test]
@@ -460,7 +460,7 @@ mod tests {
 
         let r: CellRefMut<'_, usize> = cell.borrow_mut().map(Box::as_mut);
 
-        assert_eq!(cell.flag.load(Ordering::SeqCst), std::usize::MAX);
+        assert_eq!(cell.flag.load(Ordering::SeqCst), usize::MAX);
         drop(r);
         assert_eq!(cell.flag.load(Ordering::SeqCst), 0);
     }

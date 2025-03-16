@@ -1,8 +1,8 @@
 [package]
 name = "rt_ref"
-version = "0.2.1"
+version = "0.3.0"
 authors = ["Azriel Hoh <azriel91@gmail.com>"]
-edition = "2021"
+edition = "2024"
 description = "Internal `Ref` types for `rt_ref` and `rt_vec`."
 repository = "https://github.com/azriel91/rt_ref"
 documentation = "https://docs.rs/rt_ref/"
