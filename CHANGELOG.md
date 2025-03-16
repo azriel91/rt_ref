@@ -1,6 +1,6 @@
 # Changelog
 
-## unreleased
+## 0.3.0 (2025-03-16)
 
 * Update to rust edition 2024.
 
