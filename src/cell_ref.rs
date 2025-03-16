@@ -38,6 +38,8 @@ where
     ///
     ///     Reaching `isize::MAX` may be possible with
     ///     `std::mem::forget(CellRef::clone(&r))`.
+    // https://github.com/rust-lang/rust-clippy/issues/14275
+    #[allow(clippy::doc_overindented_list_items)]
     pub fn try_clone(&self) -> Result<Self, RefOverflow> {
         let previous_value = self.flag.fetch_add(1, Ordering::Relaxed);
 
@@ -150,6 +152,8 @@ where
     ///
     ///     Reaching `isize::MAX` may be possible with
     ///     `std::mem::forget(CellRef::clone(&r))`.
+    // https://github.com/rust-lang/rust-clippy/issues/14275
+    #[allow(clippy::doc_overindented_list_items)]
     fn clone(&self) -> Self {
         self.try_clone()
             .unwrap_or_else(|e| panic!("Failed to clone `CellRef`: {e}"))

@@ -29,6 +29,8 @@ impl<'a, V> Ref<'a, V> {
     ///
     ///     Reaching `isize::MAX` may be possible with
     ///     `std::mem::forget(Ref::clone(&r))`.
+    // https://github.com/rust-lang/rust-clippy/issues/14275
+    #[allow(clippy::doc_overindented_list_items)]
     pub fn try_clone(&self) -> Result<Self, RefOverflow> {
         self.inner.try_clone().map(Self::new)
     }
@@ -77,6 +79,8 @@ impl<'a, V> Clone for Ref<'a, V> {
     ///
     ///     Reaching `isize::MAX` may be possible with
     ///     `std::mem::forget(Ref::clone(&r))`.
+    // https://github.com/rust-lang/rust-clippy/issues/14275
+    #[allow(clippy::doc_overindented_list_items)]
     fn clone(&self) -> Self {
         Ref {
             inner: self.inner.clone(),
